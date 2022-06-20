@@ -24,6 +24,20 @@ let persons = [
     }
 ]
 
+const morgan = require('morgan')
+
+
+app.use(morgan((tokens, req, res) => {
+    const data = ((req.method === "POST") ? JSON.stringify(req.body) : '')
+    return [
+      tokens.method(req, res),
+      tokens.url(req, res),
+      tokens.status(req, res),
+      tokens.res(req, res, 'content-length'), '-',
+      tokens['response-time'](req, res), 'ms', data,
+    ].join(' ')
+  }))
+
 app.use(express.json())
 
 app.post('/api/persons', (request, response) => {
@@ -33,6 +47,12 @@ app.post('/api/persons', (request, response) => {
       return response.status(400).json({ 
         error: 'content missing' 
       })
+    }
+
+    if (persons.find(p => p.name === body.name)) {
+        return response.status(400).json({
+            error: 'name must be unique'
+        })
     }
   
     const person = {
