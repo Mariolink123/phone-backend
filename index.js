@@ -1,9 +1,11 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+require('dotenv').config()
 const morgan = require('morgan')
+const Person = require('./models/person')
 
-let persons = [
+/*let persons = [
     {
         "id": 1,
         "name": "Arto Hellas",
@@ -24,7 +26,7 @@ let persons = [
         "name": "Mary Poppendieck",
         "number": "39-23-6423122"
     }
-]
+]*/
 
 app.use(express.static('build'))
 
@@ -83,18 +85,15 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
+  Person.find({}).then(persons => {
     res.json(persons)
+  })
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+  Person.findById(request.params.id).then(person => {
+    response.json(person)
+  })
 })
 
 
@@ -104,6 +103,12 @@ app.delete('/api/persons/:id', (request, response) => {
 
     response.status(204).end()
 })
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 
 
